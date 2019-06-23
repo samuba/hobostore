@@ -6,6 +6,7 @@ var marked = require('marked')
 var app = express()
 app.use(cors())
 app.use(bodyParser.text())
+app.use(bodyParser.json())
 
 // init sqlite db
 var fs = require('fs')
@@ -24,9 +25,11 @@ db.serialize(function(){
 
 info((x) => console.log(x))
 
-app.put('/exec', (req, res) => executeSql(req.body, x => res.send(x)))
+app.post('/exec', (req, res) => executeSql(req.body.sql, req.body.params, x => res.send(x)))
 
-app.get('/exec/:sql', (req, res) => executeSql(req.params.sql, x => res.send(x)))
+app.put('/exec', (req, res) => executeSql(req.body, [], x => res.send(x)))
+
+app.get('/exec/:sql', (req, res) => executeSql(req.params.sql, [], x => res.send(x)))
 
 app.get('/info', (req, res) => info(x => res.send(x)))
 
@@ -58,18 +61,19 @@ function info(callback) {
   }) 
 }
 
-function executeSql(sql, callback) {
-  console.log("executing sql", sql)
+function executeSql(sql, params, callback) {
+  console.log("executing sql: " + sql + "\nwith params: ", params)
+  params = params || []
   if (!sql) return callback({ error: "no sql was given to execute" })
   sql = sql.trim()
 
   if (sql.toLowerCase().startsWith("select ")) {
-     db.all(sql, (err, rows) => {
+     db.all(sql, params, (err, rows) => {
        console.log("error", err)
        callback({ result: rows, error: err ? err.stack : undefined })
      })
   } else {
-    db.serialize(() => db.run(sql, err => { 
+    db.serialize(() => db.run(sql, params, err => { 
       console.log("error", err)
       callback({ result: err ? "failed" : "ok", error: err ? err.stack : undefined })
     }))
