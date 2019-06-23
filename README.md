@@ -14,14 +14,13 @@ An ultra cheap, SQL powered, Firebase alternative
 
 ### Example
 <code>
-curl -X PUT --data "SELECT * FROM Authors" -H "Content-Type: text/plain" https://<myHobostoreUrl>/exec
+curl -X PUT --data "SELECT * FROM Authors" -H "Content-Type: text/plain" https://%myHobostoreUrl%/exec
 
 {
   "result": [
     {
       "firstname": "Heinz",
-      "lastname": "Erhardt",
-      "description": "Wer sich selbst auf den Arm nimmt, erspart anderen die Arbeit."
+      "lastname": "Erhardt"
     }
   ]
 }
