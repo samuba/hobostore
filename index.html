@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+    <title>Hobostore</title>
+    
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
+  </head>
+  <body>
+    <noscript>
+      <strong>We're sorry but hobostore-explorer doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+    </noscript>
+    
+    
+    <nav class="navbar" role="navigation" aria-label="main navigation">
+      <div class="navbar-brand">
+        <a class="navbar-item" href="https://bulma.io">
+          <img src="https://cdn.glitch.com/e003989b-8256-4c47-9d72-378acc6c5df4%2Fhobostore_small.png?v=1561301490961" height="28">
+          &nbsp;&nbsp;<h1 class="is-size-5">Hobostore</h1>
+        </a>
+
+        <a
+          role="button"
+          class="navbar-burger burger"
+          aria-label="menu"
+          aria-expanded="false"
+          data-target="navbarBasicExample"
+        >
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+        </a>
+      </div>
+
+      <div id="navbarBasicExample" class="navbar-menu">
+        <div class="navbar-start">
+          <a href="/sql.html" class="navbar-item">SQL</a>
+          <a href="/data" class="navbar-item">Data</a>
+        </div>
+      </div>
+    </nav>
+    
+    
+    <div id="app">
+    
+      <section class="section">
+        <div class="tabs is-medium">
+          <ul>
+            <li v-for="(table) in dbInfo.tables"
+              :key="table.name"
+              @click="showTable(table.name, $event.target.parentElement)"
+              :ref="'tab-' + table.name">
+              <a>{{table.name}}&nbsp; <span class="tag">{{table.rows}}</span></a>
+            </li>
+          </ul>
+        </div>
+
+        <div class="columns is-centered">
+          <div class="column">
+            <progress ref="spinner" class="progress is-small is-dark"></progress>
+            
+            <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
+              <thead>
+                <th></th>
+                <th v-for="column in columns" :key="column">{{column}}</th>
+              </thead>
+              <tbody>
+                <tr v-for="row in table" :key="JSON.stringify(row)">
+                  <td>
+                    <a @click="deleteRow(table.name, row.id)" class="delete"></a>
+                  </td>
+                  <td v-for="cell in row" :key="cell">{{cell}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+      
+    </div>
+  </body>
+  <script>
+    var app = new Vue({
+      el: '#app',
+      data: {
+        dbInfo: {},
+        table: [],
+        columns: [],
+        currentTableInfo: {}
+      },
+      mounted: function() {
+        this.fetchDbInfo().then(x => {
+          if (x.tables.length > 0) {
+            const firstTable = x.tables[0].name
+            this.showTable(firstTable, this.$refs["tab-" + firstTable][0])
+          }
+        })
+      },
+      methods: {
+          fetchDbInfo: function() {
+            return this.getDBInfo().then(x => (this.dbInfo = x))
+          },
+        
+          showTable: function(table, tab) {
+            console.log(tab)
+            console.log(tab.classList)
+            tab.classList.add("is-active")
+            this.getSiblingElements(tab).forEach(x => x.classList.remove("is-active"))
+            this.$refs.spinner.style.display = "block"
+            return this.execSql("SELECT * FROM " + table).then(x => {
+              if (x.length > 0) {
+                this.columns = Object.keys(x[0])
+              }
+              this.table = x
+              this.currentTableInfo = this.dbInfo.tables.find(x => x.name == table)
+              this.$refs.spinner.style.display = "none"
+            })
+          },
+        
+          getSiblingElements: function(element) {
+            const siblings = []
+            let sibling = element.parentNode.firstChild
+            while (sibling) {
+              if (sibling.nodeType === 1 && sibling !== element) {
+                siblings.push(sibling)
+              }
+              sibling = sibling.nextSibling
+            }
+            return siblings
+          },
+        
+          deleteRow: function(rowId, table) {
+            return this.execSql("DELETE FROM " + table + " WHERE ???")
+              .then(() => this.showTable(table))
+              .catch(err => alert(err))
+          },
+        
+          execSql: function(sql, params) {
+              console.log("executing SQL: \n" + sql + "\nWith params: ", params)
+              return new Promise((resolve, reject) => {
+                  axios.post("https://hobostore.glitch.me/exec", { sql: sql.trim(), params })
+                      .then(x => {
+                          if (!x.data.error) return resolve(x.data.result)
+
+                          console.error("Could not execute SQL: \n" + sql + "\n\n", x.data.error)
+                          reject(x.data.error)
+                      })
+                      .catch(err => reject(err))
+              })
+          },
+        
+          getDBInfo: function() {
+            return new Promise((resolve, reject) => {
+              axios.get("https://hobostore.glitch.me/info")
+              .then(x => {
+                  if (!x.data.error) return resolve(x.data)
+                  reject(x.data.error)
+              })
+              .catch(err => reject(err))
+                })
+            }
+        }
+    })
+  </script>
+</html>
