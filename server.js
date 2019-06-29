@@ -7,6 +7,7 @@ var app = express()
 app.use(cors())
 app.use(bodyParser.text())
 app.use(bodyParser.json())
+app.use("/explore", express.static('public'))
 
 // init sqlite db
 var fs = require('fs')
@@ -28,7 +29,7 @@ app.get('/info', (req, res) => info(x => res.send(x)))
 
 app.get('/dump', (req, res) => dump(x => res.send(x)))
 
-app.get("/explore", (req, res) => res.sendFile(__dirname + '/index.html'))
+//app.get("/explore", (req, res) => express.static('public')//res.sendFile(__dirname + 'public/index.html'))
 
 function dump(callback) {  
   function loop(sqls, i, dump) {

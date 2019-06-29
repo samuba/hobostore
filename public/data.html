@@ -15,36 +15,17 @@
     <noscript>
       <strong>We're sorry but hobostore-explorer doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
     </noscript>
-    
-    
     <nav class="navbar" role="navigation" aria-label="main navigation">
       <div class="navbar-brand">
         <a class="navbar-item" href="https://bulma.io">
           <img src="https://cdn.glitch.com/e003989b-8256-4c47-9d72-378acc6c5df4%2Fhobostore_small.png?v=1561301490961" height="28">
           &nbsp;&nbsp;<h1 class="is-size-5">Hobostore</h1>
         </a>
-
-        <a
-          role="button"
-          class="navbar-burger burger"
-          aria-label="menu"
-          aria-expanded="false"
-          data-target="navbarBasicExample"
-        >
-          <span aria-hidden="true"></span>
-          <span aria-hidden="true"></span>
-          <span aria-hidden="true"></span>
-        </a>
-      </div>
-
-      <div id="navbarBasicExample" class="navbar-menu">
-        <div class="navbar-start">
-          <a href="/sql.html" class="navbar-item">SQL</a>
-          <a href="/data" class="navbar-item">Data</a>
-        </div>
+        
+        <a href="./index.html" class="navbar-item">SQL</a>
+        <a href="./data.html" class="navbar-item is-active">Data</a>
       </div>
     </nav>
-    
     
     <div id="app">
     
@@ -84,7 +65,7 @@
       
     </div>
   </body>
-  <script>
+  <script>    
     var app = new Vue({
       el: '#app',
       data: {
