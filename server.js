@@ -29,8 +29,6 @@ app.get('/info', (req, res) => info(x => res.send(x)))
 
 app.get('/dump', (req, res) => dump(x => res.send(x)))
 
-//app.get("/explore", (req, res) => express.static('public')//res.sendFile(__dirname + 'public/index.html'))
-
 function dump(callback) {  
   function loop(sqls, i, dump) {
     db.all(sqls[i].sql, (err, res) => { 

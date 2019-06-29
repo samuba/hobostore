@@ -12,14 +12,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
   </head>
   <body>
-    <style>[v-cloak] > * { display:none } [v-cloak]::before { content: "loading… }</style>
+    <style>[v-cloak] > * { display:none } [v-cloak]::before { content: "loading…" }</style>
     <noscript>
       <strong>We're sorry but hobostore-explorer doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
     </noscript>
     
     <nav class="navbar" role="navigation" aria-label="main navigation">
       <div class="navbar-brand">
-        <a class="navbar-item" href="https://bulma.io">
+        <a class="navbar-item" href="/">
           <img src="https://cdn.glitch.com/e003989b-8256-4c47-9d72-378acc6c5df4%2Fhobostore_small.png?v=1561301490961" height="28">
           &nbsp;&nbsp;<h1 class="is-size-5">Hobostore</h1>
         </a>
@@ -36,7 +36,11 @@
         <div class="columns is-centered">
           <div class="column">
             
-            <textarea v-model="sql" @keydown="keyDown(sql, $event)" class="textarea is-small" placeholder="SELECT * FROM Foo" rows="7"></textarea>
+            <textarea v-model="sql" @keydown="keyDown(sql, $event)" 
+                      class="textarea is-small" 
+                      placeholder="SELECT * FROM Foo" 
+                      rows="5">
+            </textarea>
             <br>
             <button @click="execSql(sql)" ref="execButton" class="button is-link">
               Execute
@@ -46,8 +50,8 @@
             <div v-if="result" class="card">
               <header class="card-header">
                 <p class="card-header-title">Result  &nbsp;&nbsp;
-                  <span v-if="successful" class="tag is-success">Successful</span>
-                  <span v-if="failed" class="tag is-danger">Failed</span>
+                  <span v-if="successful" class="tag is-success">succeeded in {{duration}}ms</span>
+                  <span v-if="failed" class="tag is-danger">failed in {{duration}}ms</span>
                 </p>
                 
               </header>
@@ -68,16 +72,18 @@
         sql: "SELECT * FROM Authors",
         result: "",
         successful: false,
-        failed: false
+        failed: false,
+        duration: ""
       },
       methods: { 
         keyDown: function(sql, event) {
-          if (event.keyCode == 13 && event.shiftKey) this.execSql(sql)
+          if (event.keyCode == 13 && event.ctrlKey) this.execSql(sql)
         },
         
         execSql: function(sql, params) {
             console.log("executing SQL: \n" + sql + "\nWith params: ", params)
             this.$refs.execButton.classList.add("is-loading")
+            const before = performance.now()
             new Promise((resolve, reject) => {
                 axios.post("https://hobostore.glitch.me/exec", { sql: sql.trim(), params })
                     .then(x => {
@@ -88,18 +94,16 @@
                     })
                     .catch(err => reject(err))
             })
-            .then(x => {
-              this.$refs.execButton.classList.remove("is-loading")
-              this.successful = true
-              this.failed = false
-              this.result = this.syntaxHighlight(x)
-            })
-            .catch(x => {
-              this.$refs.execButton.classList.remove("is-loading")
-              this.successful = false
-              this.failed = true
-              this.result = x
-            })
+            .then(x => this.showResult(x, true, before))
+            .catch(x => this.showResult(x, false, before))
+        },
+        
+        showResult: function(result, successful, beforeTime) {
+          this.duration = Math.round(performance.now() - beforeTime)
+          this.$refs.execButton.classList.remove("is-loading")
+          this.successful = successful
+          this.failed = !successful
+          this.result = successful ? this.syntaxHighlight(result) : "<b>"+result+"</b>"
         },
         
         syntaxHighlight: function(json) {
@@ -129,11 +133,11 @@
   <style>  
     .card-content { padding: 1px 0 0 0; }
      pre { padding: 20px; }
-    .queryResult .string { color: green; }
-    .queryResult .number { color: darkorange; }
-    .queryResult .boolean { color: blue; }
-    .queryResult .null { color: magenta; }
-    .queryResult .key { color: red; }
+     .string { color: green; }
+     .number { color: darkorange; }
+     .boolean { color: blue; }
+     .null { color: magenta; }
+     .key { color: red; }
 
   </style>
 </html>

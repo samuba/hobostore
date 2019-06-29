@@ -4,8 +4,7 @@ An ultra cheap, SQL powered, Firestore alternative
 
 ![hobostore logo](https://cdn.glitch.com/e003989b-8256-4c47-9d72-378acc6c5df4%2Fhobostore_small.png?v=1561301490961)
 
-### Explore DB
-[/explore](./explore)
+### Explore it via UI: [Hobostore Explorer](./explore)
 
 ### Endpoints:
 - **GET [/exec/](./exec)** will execute the SQL query that was passed as path parameter and return the result
