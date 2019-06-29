@@ -7,6 +7,7 @@ var app = express()
 app.use(cors())
 app.use(bodyParser.text())
 app.use(bodyParser.json())
+app.use("/explore", express.static('public'))
 
 // init sqlite db
 var fs = require('fs')
@@ -14,14 +15,7 @@ var dbFile = './.data/sqlite.db'
 var exists = fs.existsSync(dbFile)
 var sqlite3 = require('sqlite3').verbose()
 var db = new sqlite3.Database(dbFile)
-
-db.serialize(function(){ 
-  if (!exists) {
-    db.run('CREATE TABLE Dreams (dream TEXT)')
-    console.log('New table Dreams created!')
-    db.serialize(() => db.run('INSERT INTO Dreams (dream) VALUES ("Find and count some sheep"), ("Climb a really tall mountain"), ("Wash the dishes")'))
-  } 
-}) 
+db.exec("PRAGMA foreign_keys = ON")
 
 info((x) => console.log(x))
 
@@ -37,7 +31,6 @@ app.get('/dump', (req, res) => dump(x => res.send(x)))
 
 function dump(callback) {  
   function loop(sqls, i, dump) {
-    console.log(i)    
     db.all(sqls[i].sql, (err, res) => { 
       dump.push({ table: sqls[i].table, content: res })
       i++
@@ -62,17 +55,19 @@ function info(callback) {
 }
 
 function executeSql(sql, params, callback) {
-  console.log("executing sql: " + sql + "\nwith params: ", params)
   params = params || []
   if (!sql) return callback({ error: "no sql was given to execute" })
   sql = sql.trim()
 
   if (sql.toLowerCase().startsWith("select ")) {
+    console.log("executing sql: " + sql + "\nwith params: ", params)
      db.all(sql, params, (err, rows) => {
        console.log("error", err)
        callback({ result: rows, error: err ? err.stack : undefined })
      })
   } else {
+    //sql = "PRAGMA foreign_keys = ON; \n" + sql + ";"
+    console.log("executing sql: " + sql + "\nwith params: ", params)
     db.serialize(() => db.run(sql, params, err => { 
       console.log("error", err)
       callback({ result: err ? "failed" : "ok", error: err ? err.stack : undefined })

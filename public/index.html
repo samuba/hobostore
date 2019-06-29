@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+    <title>Hobostore</title>
+    
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
+  </head>
+  <body>
+    <style>[v-cloak] > * { display:none } [v-cloak]::before { content: "loading…" }</style>
+    <noscript>
+      <strong>We're sorry but hobostore-explorer doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+    </noscript>
+    
+    <nav class="navbar" role="navigation" aria-label="main navigation">
+      <div class="navbar-brand">
+        <a class="navbar-item" href="/">
+          <img src="https://cdn.glitch.com/e003989b-8256-4c47-9d72-378acc6c5df4%2Fhobostore_small.png?v=1561301490961" height="28">
+          &nbsp;&nbsp;<h1 class="is-size-5">Hobostore</h1>
+        </a>
+        
+        <a href="./index.html" class="navbar-item is-active">SQL</a>
+        <a href="./data.html" class="navbar-item">Data</a>
+      </div>
+    </nav>
+    
+    <div id="app" v-cloak>
+    
+      <section class="section">
+     
+        <div class="columns is-centered">
+          <div class="column">
+            
+            <textarea v-model="sql" @keydown="keyDown(sql, $event)" 
+                      class="textarea is-small" 
+                      placeholder="SELECT * FROM Foo" 
+                      rows="5">
+            </textarea>
+            <br>
+            <button @click="execSql(sql)" ref="execButton" class="button is-link">
+              Execute
+            </button>
+            <br><br>
+            
+            <div v-if="result" class="card">
+              <header class="card-header">
+                <p class="card-header-title">Result  &nbsp;&nbsp;
+                  <span v-if="successful" class="tag is-success">succeeded in {{duration}}ms</span>
+                  <span v-if="failed" class="tag is-danger">failed in {{duration}}ms</span>
+                </p>
+                
+              </header>
+              <div class="card-content">
+                <pre v-html="result" class="content is-size-7 queryResult"></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+    </div>
+  </body>
+  <script>    
+    var app = new Vue({
+      el: '#app',
+      data: {
+        sql: "SELECT * FROM Authors",
+        result: "",
+        successful: false,
+        failed: false,
+        duration: ""
+      },
+      methods: { 
+        keyDown: function(sql, event) {
+          if (event.keyCode == 13 && event.ctrlKey) this.execSql(sql)
+        },
+        
+        execSql: function(sql, params) {
+            console.log("executing SQL: \n" + sql + "\nWith params: ", params)
+            this.$refs.execButton.classList.add("is-loading")
+            const before = performance.now()
+            new Promise((resolve, reject) => {
+                axios.post("https://hobostore.glitch.me/exec", { sql: sql.trim(), params })
+                    .then(x => {
+                        if (!x.data.error) return resolve(x.data.result)
+
+                        console.error("Could not execute SQL: \n" + sql + "\n\n", x.data.error)
+                        reject(x.data.error)
+                    })
+                    .catch(err => reject(err))
+            })
+            .then(x => this.showResult(x, true, before))
+            .catch(x => this.showResult(x, false, before))
+        },
+        
+        showResult: function(result, successful, beforeTime) {
+          this.duration = Math.round(performance.now() - beforeTime)
+          this.$refs.execButton.classList.remove("is-loading")
+          this.successful = successful
+          this.failed = !successful
+          this.result = successful ? this.syntaxHighlight(result) : "<b>"+result+"</b>"
+        },
+        
+        syntaxHighlight: function(json) {
+          if (typeof json != 'string') {
+               json = JSON.stringify(json, undefined, 2)
+          }
+          json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+              var cls = 'number';
+              if (/^"/.test(match)) {
+                  if (/:$/.test(match)) {
+                      cls = 'key';
+                  } else {
+                      cls = 'string';
+                  }
+              } else if (/true|false/.test(match)) {
+                  cls = 'boolean';
+              } else if (/null/.test(match)) {
+                  cls = 'null';
+              }
+              return '<span class="' + cls + '">' + match + '</span>';
+          })
+        }  
+      }
+    })
+  </script>
+  <style>  
+    .card-content { padding: 1px 0 0 0; }
+     pre { padding: 20px; }
+     .string { color: green; }
+     .number { color: darkorange; }
+     .boolean { color: blue; }
+     .null { color: magenta; }
+     .key { color: red; }
+
+  </style>
+</html>
