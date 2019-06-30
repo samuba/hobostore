@@ -8,6 +8,13 @@ app.use(cors())
 app.use(bodyParser.text())
 app.use(bodyParser.json())
 app.use("/explore", express.static('public'))
+app.use((req, res, next) => {
+  if (req.path.startsWith("/api") && req.get("api-key") != process.env.API_KEY) {
+    res.send("access to /api without valid api-key in header is not allowed", 401)
+  } 
+  else next()
+})
+
 
 // init sqlite db
 var fs = require('fs')
@@ -19,15 +26,15 @@ db.exec("PRAGMA foreign_keys = ON")
 
 info((x) => console.log(x))
 
-app.post('/exec', (req, res) => executeSql(req.body.sql, req.body.params, x => res.send(x)))
+app.post('/api/exec', (req, res) => executeSql(req.body.sql, req.body.params, x => res.send(x)))
 
-app.put('/exec', (req, res) => executeSql(req.body, [], x => res.send(x)))
+app.put('/api/exec', (req, res) => executeSql(req.body, [], x => res.send(x)))
 
-app.get('/exec/:sql', (req, res) => executeSql(req.params.sql, [], x => res.send(x)))
+app.get('/api/exec/:sql', (req, res) => executeSql(req.params.sql, [], x => res.send(x)))
 
-app.get('/info', (req, res) => info(x => res.send(x)))
+app.get('/api/info', (req, res) => info(x => res.send(x)))
 
-app.get('/dump', (req, res) => dump(x => res.send(x)))
+app.get('/api/dump', (req, res) => dump(x => res.send(x)))
 
 function dump(callback) {  
   function loop(sqls, i, dump) {

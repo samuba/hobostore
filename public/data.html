@@ -125,26 +125,32 @@
           execSql: function(sql, params) {
               console.log("executing SQL: \n" + sql + "\nWith params: ", params)
               return new Promise((resolve, reject) => {
-                  axios.post("https://hobostore.glitch.me/exec", { sql: sql.trim(), params })
+                  axios.post("https://hobostore.glitch.me/asp/exec", { sql: sql.trim(), params })
                       .then(x => {
                           if (!x.data.error) return resolve(x.data.result)
 
                           console.error("Could not execute SQL: \n" + sql + "\n\n", x.data.error)
                           reject(x.data.error)
                       })
-                      .catch(err => reject(err))
+                      .catch(err => { 
+                        if(err.response && err.response.data) reject(err.response.data)
+                        else reject(err)
+                      })
               })
           },
         
           getDBInfo: function() {
             return new Promise((resolve, reject) => {
-              axios.get("https://hobostore.glitch.me/info")
-              .then(x => {
-                  if (!x.data.error) return resolve(x.data)
-                  reject(x.data.error)
-              })
-              .catch(err => reject(err))
+              axios.get("https://hobostore.glitch.me/api/info")
+                .then(x => {
+                    if (!x.data.error) return resolve(x.data)
+                    reject(x.data.error)
                 })
+                .catch(err => { 
+                  if(err.response && err.response.data) reject(err.response.data)
+                  else reject(err)
+                })
+              })
             }
         }
     })

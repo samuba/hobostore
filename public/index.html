@@ -15,22 +15,23 @@
     <style>[v-cloak] > * { display:none } [v-cloak]::before { content: "loading…" }</style>
     <noscript>
       <strong>We're sorry but hobostore-explorer doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
-    </noscript>
-    
-    <nav class="navbar" role="navigation" aria-label="main navigation">
-      <div class="navbar-brand">
-        <a class="navbar-item" href="/">
-          <img src="https://cdn.glitch.com/e003989b-8256-4c47-9d72-378acc6c5df4%2Fhobostore_small.png?v=1561301490961" height="28">
-          &nbsp;&nbsp;<h1 class="is-size-5">Hobostore</h1>
-        </a>
-        
-        <a href="./index.html" class="navbar-item is-active">SQL</a>
-        <a href="./data.html" class="navbar-item">Data</a>
-      </div>
-    </nav>
-    
+    </noscript>    
     <div id="app" v-cloak>
     
+      <nav class="navbar" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+          <a class="navbar-item" href="/">
+            <img src="https://cdn.glitch.com/e003989b-8256-4c47-9d72-378acc6c5df4%2Fhobostore_small.png?v=1561301490961" height="28">
+            &nbsp;&nbsp;<h1 class="is-size-5">Hobostore</h1>
+          </a>
+
+          <a href="./index.html" class="navbar-item is-active">SQL</a>
+          <a href="./data.html" class="navbar-item">Data</a>
+          <span class="navbar-item"><input class="input" v-model="apiKey" @keyup="apiKeyChanged(apiKey)" placeholder="api-key"></span>
+
+        </div>
+      </nav>
+      
       <section class="section">
      
         <div class="columns is-centered">
@@ -73,9 +74,17 @@
         result: "",
         successful: false,
         failed: false,
-        duration: ""
+        duration: "",
+        apiKey: "sdf"
+      },
+      mounted: function() {
+        this.apiKey = localStorage.getItem("api-key")
       },
       methods: { 
+        apiKeyChanged: function(newApiKey) {
+          localStorage.setItem("api-key", newApiKey)
+        },
+        
         keyDown: function(sql, event) {
           if (event.keyCode == 13 && event.ctrlKey) this.execSql(sql)
         },
@@ -85,14 +94,17 @@
             this.$refs.execButton.classList.add("is-loading")
             const before = performance.now()
             new Promise((resolve, reject) => {
-                axios.post("https://hobostore.glitch.me/exec", { sql: sql.trim(), params })
+                axios.post("https://hobostore.glitch.me/api/exec", { sql: sql.trim(), params }, { headers: { "api-key": this.apiKey }})
                     .then(x => {
                         if (!x.data.error) return resolve(x.data.result)
 
                         console.error("Could not execute SQL: \n" + sql + "\n\n", x.data.error)
                         reject(x.data.error)
                     })
-                    .catch(err => reject(err))
+                    .catch(err => { 
+                      if(err.response && err.response.data) reject(err.response.data)
+                      else reject(err)
+                    })
             })
             .then(x => this.showResult(x, true, before))
             .catch(x => this.showResult(x, false, before))

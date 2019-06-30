@@ -13,11 +13,11 @@ Recommended use is to just fork/remix it on [glitch.com](https://glitch.com/~hob
 ### Explore it via UI: [Hobostore Explorer](./explore)
 
 ### Endpoints:
-- **GET [/exec/](./exec)** will execute the SQL query that was passed as path parameter and return the result
-- **PUT [/exec](./exec)** will execute the SQL query that was passed as `text/plain` body and return the result
-- **POST [/exec](./exec)** takes an `application/json` object with `sql` (prepared statement) and `params` properties, executes the SQL query with the given params and returns the result
-- **GET [/info](./info)** returns information on the DB
-- **GET [/dump](./dump)** dumps all the Tables
+- **GET [/api/exec/](./api/exec)** will execute the SQL query that was passed as path parameter and return the result
+- **PUT [/api/exec](./api/exec)** will execute the SQL query that was passed as `text/plain` body and return the result
+- **POST [/api/exec](./api/exec)** takes an `application/json` object with `sql` (prepared statement) and `params` properties, executes the SQL query with the given params and returns the result
+- **GET [/api/info](./api/info)** returns information on the DB
+- **GET [/api/dump](./api/dump)** dumps all the Tables
 
 ### Example
 <code>
