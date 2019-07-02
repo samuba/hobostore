@@ -10,6 +10,7 @@
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.min.css">
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
+    <script src="common.js"></script>
   </head>
   <body>
     <style>[v-cloak] > * { display:none } [v-cloak]::before { content: "loading…" }</style>
@@ -27,7 +28,7 @@
 
           <a href="./index.html" class="navbar-item is-active">SQL</a>
           <a href="./data.html" class="navbar-item">Data</a>
-          <span class="navbar-item"><input class="input" v-model="apiKey" @keyup="apiKeyChanged(apiKey)" placeholder="api-key"></span>
+          <span class="navbar-item"><input class="input" id="api-key-input" placeholder="api-key"></span>
 
         </div>
       </nav>
@@ -43,7 +44,7 @@
                       rows="5">
             </textarea>
             <br>
-            <button @click="execSql(sql)" ref="execButton" class="button is-link">
+            <button @click="exec(sql)" ref="execButton" class="button is-link">
               Execute
             </button>
             <br><br>
@@ -75,39 +76,19 @@
         successful: false,
         failed: false,
         duration: "",
-        apiKey: "sdf"
-      },
-      mounted: function() {
-        this.apiKey = localStorage.getItem("api-key")
       },
       methods: { 
-        apiKeyChanged: function(newApiKey) {
-          localStorage.setItem("api-key", newApiKey)
-        },
         
         keyDown: function(sql, event) {
-          if (event.keyCode == 13 && event.ctrlKey) this.execSql(sql)
+          if (event.keyCode == 13 && event.ctrlKey) this.exec(sql)
         },
         
-        execSql: function(sql, params) {
-            console.log("executing SQL: \n" + sql + "\nWith params: ", params)
+        exec: function(sql, params) {
             this.$refs.execButton.classList.add("is-loading")
             const before = performance.now()
-            new Promise((resolve, reject) => {
-                axios.post("https://hobostore.glitch.me/api/exec", { sql: sql.trim(), params }, { headers: { "api-key": this.apiKey }})
-                    .then(x => {
-                        if (!x.data.error) return resolve(x.data.result)
-
-                        console.error("Could not execute SQL: \n" + sql + "\n\n", x.data.error)
-                        reject(x.data.error)
-                    })
-                    .catch(err => { 
-                      if(err.response && err.response.data) reject(err.response.data)
-                      else reject(err)
-                    })
-            })
-            .then(x => this.showResult(x, true, before))
-            .catch(x => this.showResult(x, false, before))
+            execSql(sql, params)
+              .then(x => this.showResult(x, true, before))
+              .catch(x => this.showResult(x, false, before))
         },
         
         showResult: function(result, successful, beforeTime) {

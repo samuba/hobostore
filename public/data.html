@@ -10,25 +10,28 @@
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.min.css">
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
+    <script src="common.js"></script>
   </head>
   <body>
     <style>[v-cloak] > * { display:none } [v-cloak]::before { content: "loading…" }</style>
     <noscript>
       <strong>We're sorry but hobostore-explorer doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
-    </noscript>
-    <nav class="navbar" role="navigation" aria-label="main navigation">
-      <div class="navbar-brand">
-        <a class="navbar-item" href="/">
-          <img src="https://cdn.glitch.com/e003989b-8256-4c47-9d72-378acc6c5df4%2Fhobostore_small.png?v=1561301490961" height="28">
-          &nbsp;&nbsp;<h1 class="is-size-5">Hobostore</h1>
-        </a>
-        
-        <a href="./index.html" class="navbar-item">SQL</a>
-        <a href="./data.html" class="navbar-item is-active">Data</a>
-      </div>
-    </nav>
-    
+    </noscript>    
     <div id="app" v-cloak>
+    
+      <nav class="navbar" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+          <a class="navbar-item" href="/">
+            <img src="https://cdn.glitch.com/e003989b-8256-4c47-9d72-378acc6c5df4%2Fhobostore_small.png?v=1561301490961" height="28">
+            &nbsp;&nbsp;<h1 class="is-size-5">Hobostore</h1>
+          </a>
+
+          <a href="./index.html" class="navbar-item">SQL</a>
+          <a href="./data.html" class="navbar-item is-active">Data</a>
+          <span class="navbar-item"><input class="input" id="api-key-input" placeholder="api-key"></span>
+
+        </div>
+      </nav>
     
       <section class="section" v-cloak>
         <div class="tabs is-medium">
@@ -73,7 +76,7 @@
         dbInfo: {},
         table: [],
         columns: [],
-        currentTableInfo: {}
+        currentTableInfo: {},
       },
       mounted: function() {
         this.fetchDbInfo().then(x => {
@@ -83,9 +86,10 @@
           }
         })
       },
-      methods: {
+      methods: { 
+
           fetchDbInfo: function() {
-            return this.getDBInfo().then(x => (this.dbInfo = x))
+            return getDBInfo().then(x => (this.dbInfo = x))
           },
         
           showTable: function(table, tab) {
@@ -94,7 +98,7 @@
             tab.classList.add("is-active")
             this.getSiblingElements(tab).forEach(x => x.classList.remove("is-active"))
             this.$refs.spinner.style.display = "block"
-            return this.execSql("SELECT * FROM " + table).then(x => {
+            return execSql("SELECT * FROM " + table).then(x => {
               if (x.length > 0) {
                 this.columns = Object.keys(x[0])
               }
@@ -117,41 +121,11 @@
           },
         
           deleteRow: function(rowId, table) {
-            return this.execSql("DELETE FROM " + table + " WHERE ???")
+            return execSql("DELETE FROM " + table + " WHERE ???")
               .then(() => this.showTable(table))
               .catch(err => alert(err))
           },
         
-          execSql: function(sql, params) {
-              console.log("executing SQL: \n" + sql + "\nWith params: ", params)
-              return new Promise((resolve, reject) => {
-                  axios.post("https://hobostore.glitch.me/asp/exec", { sql: sql.trim(), params })
-                      .then(x => {
-                          if (!x.data.error) return resolve(x.data.result)
-
-                          console.error("Could not execute SQL: \n" + sql + "\n\n", x.data.error)
-                          reject(x.data.error)
-                      })
-                      .catch(err => { 
-                        if(err.response && err.response.data) reject(err.response.data)
-                        else reject(err)
-                      })
-              })
-          },
-        
-          getDBInfo: function() {
-            return new Promise((resolve, reject) => {
-              axios.get("https://hobostore.glitch.me/api/info")
-                .then(x => {
-                    if (!x.data.error) return resolve(x.data)
-                    reject(x.data.error)
-                })
-                .catch(err => { 
-                  if(err.response && err.response.data) reject(err.response.data)
-                  else reject(err)
-                })
-              })
-            }
         }
     })
   </script>
