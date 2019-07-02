@@ -34,13 +34,13 @@
       </nav>
     
       <section class="section" v-cloak>
-        <div class="tabs is-medium">
+        <div class="tabs">
           <ul>
             <li v-for="(table) in dbInfo.tables"
               :key="table.name"
               @click="showTable(table.name, $event.target.parentElement)"
               :ref="'tab-' + table.name">
-              <a>{{table.name}}&nbsp; <span class="tag">{{table.rows}}</span></a>
+              <a>{{table.name}}&nbsp; <span class="tag is-normal">{{table.rows}}</span></a>
             </li>
           </ul>
         </div>
@@ -49,16 +49,12 @@
           <div class="column">
             <progress ref="spinner" class="progress is-small is-dark"></progress>
             
-            <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
+            <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth is-size-7">
               <thead>
-                <th></th>
                 <th v-for="column in columns" :key="column">{{column}}</th>
               </thead>
               <tbody>
                 <tr v-for="row in table" :key="JSON.stringify(row)">
-                  <td>
-                    <a @click="deleteRow(table.name, row.id)" class="delete"></a>
-                  </td>
                   <td v-for="cell in row" :key="cell">{{cell}}</td>
                 </tr>
               </tbody>
@@ -89,7 +85,7 @@
       methods: { 
 
           fetchDbInfo: function() {
-            return getDBInfo().then(x => (this.dbInfo = x))
+            return getDBInfo().then(x => this.dbInfo = x)
           },
         
           showTable: function(table, tab) {
@@ -119,13 +115,7 @@
             }
             return siblings
           },
-        
-          deleteRow: function(rowId, table) {
-            return execSql("DELETE FROM " + table + " WHERE ???")
-              .then(() => this.showTable(table))
-              .catch(err => alert(err))
-          },
-        
+              
         }
     })
   </script>
