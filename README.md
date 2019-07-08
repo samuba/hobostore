@@ -5,7 +5,7 @@ An ultra cheap, SQL powered, Firestore alternative. With it you can execute arbi
 So it is Basically just a thin HTTP wrapper around SQLite. 
 Do not use this for anything important! There is currently nothing in place for the security and safety of your data.
 
-![hobostore logo](https://cdn.glitch.com/e003989b-8256-4c47-9d72-378acc6c5df4%2Fhobostore_small.png?v=1561301490961)
+![hobostore logo](https://cdn.glitch.com/e003989b-8256-4c47-9d72-378acc6c5df4%2Fhobostore-no-bg-small.png)
 
 ## HowTo
 Recommended use is to just fork/remix it on [glitch.com](https://glitch.com/~hobostore) to get your own hosted instance for free immediately.

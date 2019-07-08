@@ -54,10 +54,14 @@ function dump(callback) {
 function info(callback) {
   db.all("SELECT name, sql FROM sqlite_master WHERE type='table'", (err, tables) => {
     let sql = tables
-      .map(x => "SELECT '" + x.name + "' as name, COUNT(*) as rows, '" + x.sql + "' as schema from " + x.name + " UNION ")
+      .map(x => "SELECT '" + x.name + "' as name, COUNT(*) as rows, $"+ x.name + " as schema from " + x.name + " UNION ")
       .reduce((x, y) => x + y)
     sql = sql.substr(0, sql.length - 6)
-    db.all(sql, (err, tableInfos) => callback({ tables: tableInfos }))
+    
+    let params = {}
+    tables.forEach(x => params["$"+x.name] = x.sql)
+    
+    executeSql(sql, params, x => callback({ tables: x.result }))
   }) 
 }
 

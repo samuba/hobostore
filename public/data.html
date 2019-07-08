@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+    <link rel="icon" href="https://cdn.glitch.com/e003989b-8256-4c47-9d72-378acc6c5df4%2Fhobostore.ico">
     <title>Hobostore</title>
     
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.min.css">
@@ -22,7 +22,7 @@
       <nav class="navbar" role="navigation" aria-label="main navigation">
         <div class="navbar-brand">
           <a class="navbar-item" href="/">
-            <img src="https://cdn.glitch.com/e003989b-8256-4c47-9d72-378acc6c5df4%2Fhobostore_small.png?v=1561301490961" height="28">
+            <img src="https://cdn.glitch.com/e003989b-8256-4c47-9d72-378acc6c5df4%2Fhobostore-no-bg-small.png" height="28">
             &nbsp;&nbsp;<h1 class="is-size-5">Hobostore</h1>
           </a>
 
@@ -49,7 +49,7 @@
           <div class="column">
             <progress ref="spinner" class="progress is-small is-dark"></progress>
             
-            <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth is-size-7">
+            <table class="table is-bordered is-striped is-narrow is-hoverable is-size-7">
               <thead>
                 <th v-for="column in columns" :key="column">{{column}}</th>
               </thead>
@@ -76,7 +76,8 @@
       },
       mounted: function() {
         this.fetchDbInfo().then(x => {
-          if (x.tables.length > 0) {
+          console.log(x)
+          if (x.tables && x.tables.length > 0) {
             const firstTable = x.tables[0].name
             this.showTable(firstTable, this.$refs["tab-" + firstTable][0])
           }

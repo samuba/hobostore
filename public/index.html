@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+    <link rel="icon" href="https://cdn.glitch.com/e003989b-8256-4c47-9d72-378acc6c5df4%2Fhobostore.ico">
     <title>Hobostore</title>
     
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.min.css">
@@ -22,7 +22,7 @@
       <nav class="navbar" role="navigation" aria-label="main navigation">
         <div class="navbar-brand">
           <a class="navbar-item" href="/">
-            <img src="https://cdn.glitch.com/e003989b-8256-4c47-9d72-378acc6c5df4%2Fhobostore_small.png?v=1561301490961" height="28">
+            <img src="https://cdn.glitch.com/e003989b-8256-4c47-9d72-378acc6c5df4%2Fhobostore-no-bg-small.png" height="28">
             &nbsp;&nbsp;<h1 class="is-size-5">Hobostore</h1>
           </a>
 
@@ -35,16 +35,20 @@
       
       <section class="section">
      
-        <div class="columns is-centered">
-          <div class="column">
+        <div> 
             
             <textarea v-model="sql" @keydown="keyDown(sql, $event)" 
                       class="textarea is-small" 
                       placeholder="SELECT * FROM Foo" 
                       rows="5">
             </textarea>
+            <textarea v-model="params" @keydown="keyDown(sql, $event)" 
+                      class="textarea is-small" 
+                      placeholder="{ $title: 123 }" 
+                      rows="3">
+            </textarea>
             <br>
-            <button @click="exec(sql)" ref="execButton" class="button is-link">
+            <button @click="exec(sql, params)" ref="execButton" class="button is-link">
               Execute
             </button>
             <br><br>
@@ -62,7 +66,6 @@
               </div>
             </div>
           </div>
-        </div>
       </section>
       
     </div>
@@ -72,6 +75,7 @@
       el: '#app',
       data: {
         sql: "SELECT * FROM Authors",
+        params: null,
         result: "",
         successful: false,
         failed: false,
@@ -80,13 +84,13 @@
       methods: { 
         
         keyDown: function(sql, event) {
-          if (event.keyCode == 13 && event.ctrlKey) this.exec(sql)
+          if (event.keyCode == 13 && event.ctrlKey) this.exec(sql, this.params)
         },
         
         exec: function(sql, params) {
             this.$refs.execButton.classList.add("is-loading")
             const before = performance.now()
-            execSql(sql, params)
+            execSql(sql, JSON.parse(params))
               .then(x => this.showResult(x, true, before))
               .catch(x => this.showResult(x, false, before))
         },
