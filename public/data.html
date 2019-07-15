@@ -1,123 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <link rel="icon" href="https://cdn.glitch.com/e003989b-8256-4c47-9d72-378acc6c5df4%2Fhobostore.ico">
-    <title>Hobostore</title>
-    
-    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
-    <script src="common.js"></script>
-  </head>
-  <body>
-    <style>[v-cloak] > * { display:none } [v-cloak]::before { content: "loading…" }</style>
-    <noscript>
-      <strong>We're sorry but hobostore-explorer doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
-    </noscript>    
-    <div id="app" v-cloak>
-    
-      <nav class="navbar" role="navigation" aria-label="main navigation">
-        <div class="navbar-brand">
-          <a class="navbar-item" href="/">
-            <img src="https://cdn.glitch.com/e003989b-8256-4c47-9d72-378acc6c5df4%2Fhobostore-no-bg-small.png" height="28">
-            &nbsp;&nbsp;<h1 class="is-size-5">Hobostore</h1>
-          </a>
 
-          <a href="./index.html" class="navbar-item">SQL</a>
-          <a href="./data.html" class="navbar-item is-active">Data</a>
-          <span class="navbar-item"><input class="input" id="api-key-input" placeholder="api-key"></span>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <link rel="icon" href="https://cdn.glitch.com/e003989b-8256-4c47-9d72-378acc6c5df4%2Fhobostore.ico">
+  <title>Hobostore</title>
 
-        </div>
-      </nav>
-    
-      <section class="section" v-cloak>
-        <div class="tabs">
-          <ul>
-            <li v-for="(table) in dbInfo.tables"
-              :key="table.name"
-              @click="showTable(table.name, $event.target.parentElement)"
-              :ref="'tab-' + table.name">
-              <a>{{table.name}}&nbsp; <span class="tag is-normal">{{table.rows}}</span></a>
-            </li>
-          </ul>
-        </div>
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
+  <script src="common.js"></script>
+</head>
 
-        <div class="columns is-centered">
-          <div class="column">
-            <progress ref="spinner" class="progress is-small is-dark"></progress>
-            
-            <table class="table is-bordered is-striped is-narrow is-hoverable is-size-7">
-              <thead>
-                <th v-for="column in columns" :key="column">{{column}}</th>
-              </thead>
-              <tbody>
-                <tr v-for="row in table" :key="JSON.stringify(row)">
-                  <td v-for="cell in row" :key="cell">{{cell}}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+<body>
+  <style>
+    [v-cloak]>* {
+      display: none
+    }
+
+    [v-cloak]::before {
+      content: "loading…"
+    }
+  </style>
+  <noscript>
+    <strong>We're sorry but hobostore-explorer doesn't work properly without JavaScript enabled. Please enable it to
+      continue.</strong>
+  </noscript>
+  <div id="app" v-cloak>
+
+    <nav class="navbar" role="navigation" aria-label="main navigation">
+      <div class="navbar-brand">
+        <a class="navbar-item" href="/">
+          <img src="https://cdn.glitch.com/e003989b-8256-4c47-9d72-378acc6c5df4%2Fhobostore-no-bg-small.png"
+            height="28">
+          &nbsp;&nbsp;<h1 class="is-size-5">Hobostore</h1>
+        </a>
+
+        <a href="./index.html" class="navbar-item">SQL</a>
+        <a href="./data.html" class="navbar-item is-active">Data</a>
+        <span class="navbar-item"><input class="input" id="api-key-input" placeholder="api-key"></span>
+
+      </div>
+    </nav>
+
+    <section class="section" v-cloak>
+      <div class="tabs">
+        <ul>
+          <li v-for="(table) in dbInfo.tables" :key="table.name"
+            @click="showTable(table.name, $event.target.parentElement)" :ref="'tab-' + table.name">
+            <a>{{table.name}}&nbsp; <span class="tag is-normal">{{table.rows}}</span></a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="columns is-centered">
+        <div class="column">
+          <button @click="showSchema()" class="button is-link"><i>🛈</i> &nbsp;Table Schema</button>
+          <br><br>
+          <progress ref="spinner" class="progress is-small is-dark"></progress>
+          <table class="table is-bordered is-striped is-narrow is-hoverable is-size-7">
+            <thead>
+              <th v-for="column in columns" :key="column">{{column}}</th>
+            </thead>
+            <tbody>
+              <tr v-for="row in table" :key="JSON.stringify(row)">
+                <td v-for="cell in row" :key="cell">{{cell}}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-      </section>
-      
+      </div>
+    </section>
+
+    <div ref="schemaModal" class="modal">
+      <div class="modal-background" @click="closeSchemaModal()"></div>
+      <div class="modal-content">
+        <pre>{{currentTableInfo.schema}}</pre>
+      </div>
     </div>
-  </body>
-  <script>    
-    var app = new Vue({
-      el: '#app',
-      data: {
-        dbInfo: {},
-        table: [],
-        columns: [],
-        currentTableInfo: {},
+
+  </div>
+</body>
+<script>
+  var app = new Vue({
+    el: '#app',
+    data: {
+      dbInfo: {},
+      table: [],
+      columns: [],
+      currentTableInfo: {},
+    },
+    mounted: function () {
+      this.fetchDbInfo().then(x => {
+        console.log(x)
+        if (x.tables && x.tables.length > 0) {
+          const firstTable = x.tables[0].name
+          this.showTable(firstTable, this.$refs["tab-" + firstTable][0])
+        }
+      }).catch(e => alert("Could not get DB Information:\n" + JSON.stringify(e)))
+    },
+    methods: {
+
+      fetchDbInfo: function () {
+        return getDBInfo().then(x => this.dbInfo = x)
       },
-      mounted: function() {
-        this.fetchDbInfo().then(x => {
-          console.log(x)
-          if (x.tables && x.tables.length > 0) {
-            const firstTable = x.tables[0].name
-            this.showTable(firstTable, this.$refs["tab-" + firstTable][0])
+
+      showTable: function (table, tab) {
+        console.log(tab)
+        console.log(tab.classList)
+        tab.classList.add("is-active")
+        this.getSiblingElements(tab).forEach(x => x.classList.remove("is-active"))
+        this.$refs.spinner.style.display = "block"
+        return execSql("SELECT * FROM " + table).then(x => {
+          if (x.length > 0) {
+            this.columns = Object.keys(x[0])
           }
+          this.table = x
+          this.currentTableInfo = this.dbInfo.tables.find(x => x.name == table)
+          this.$refs.spinner.style.display = "none"
         })
       },
-      methods: { 
 
-          fetchDbInfo: function() {
-            return getDBInfo().then(x => this.dbInfo = x)
-          },
-        
-          showTable: function(table, tab) {
-            console.log(tab)
-            console.log(tab.classList)
-            tab.classList.add("is-active")
-            this.getSiblingElements(tab).forEach(x => x.classList.remove("is-active"))
-            this.$refs.spinner.style.display = "block"
-            return execSql("SELECT * FROM " + table).then(x => {
-              if (x.length > 0) {
-                this.columns = Object.keys(x[0])
-              }
-              this.table = x
-              this.currentTableInfo = this.dbInfo.tables.find(x => x.name == table)
-              this.$refs.spinner.style.display = "none"
-            })
-          },
-        
-          getSiblingElements: function(element) {
-            const siblings = []
-            let sibling = element.parentNode.firstChild
-            while (sibling) {
-              if (sibling.nodeType === 1 && sibling !== element) {
-                siblings.push(sibling)
-              }
-              sibling = sibling.nextSibling
-            }
-            return siblings
-          },
-              
+      getSiblingElements: function (element) {
+        const siblings = []
+        let sibling = element.parentNode.firstChild
+        while (sibling) {
+          if (sibling.nodeType === 1 && sibling !== element) {
+            siblings.push(sibling)
+          }
+          sibling = sibling.nextSibling
         }
-    })
-  </script>
+        return siblings
+      },
+
+      showSchema: function() {
+        this.$refs.schemaModal.classList.add("is-active")
+      },
+
+      closeSchemaModal: function() {
+        this.$refs.schemaModal.classList.remove("is-active")
+      }
+
+    }
+  })
+</script>
+<style>
+  pre {
+    border-radius: 7px;
+  }
+  .button i {
+    font-size: 21px;
+    font-style: normal;
+    line-height: 1px;
+  }
+</style>
+
 </html>
