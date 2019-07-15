@@ -28,7 +28,7 @@
           <a href="./index.html" class="navbar-item is-active">SQL</a>
           <a href="./data.html" class="navbar-item">Data</a>
           <span class="navbar-item"><input class="input" id="api-key-input" placeholder="api-key"></span>
-
+          <a :href="downloadLink" class="navbar-item" title="Download the whole DB">💾</a>
         </div>
       </nav>
       
@@ -79,6 +79,7 @@
         successful: false,
         failed: false,
         duration: "",
+        downloadLink: "../api/download-db?api-key=" + getApiKey(),
       },
       methods: { 
         

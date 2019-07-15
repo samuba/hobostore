@@ -41,7 +41,7 @@
         <a href="./index.html" class="navbar-item">SQL</a>
         <a href="./data.html" class="navbar-item is-active">Data</a>
         <span class="navbar-item"><input class="input" id="api-key-input" placeholder="api-key"></span>
-
+        <a :href="downloadLink" class="navbar-item" title="Download the whole DB">💾</a>
       </div>
     </nav>
 
@@ -91,6 +91,7 @@
       table: [],
       columns: [],
       currentTableInfo: {},
+      downloadLink: "../api/download-db?api-key=" + getApiKey(),
     },
     mounted: function () {
       this.fetchDbInfo().then(x => {

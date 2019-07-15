@@ -9,7 +9,7 @@ app.use(bodyParser.text())
 app.use(bodyParser.json())
 app.use("/explore", express.static('public'))
 app.use((req, res, next) => {
-  if (req.path.startsWith("/api") && req.get("api-key") != process.env.API_KEY) {
+  if (req.path.startsWith("/api") && req.get("api-key") != process.env.API_KEY && req.query['api-key'] != process.env.API_KEY) {
     res.send("access to /api without valid api-key in header is not allowed", 401)
   } 
   else next()
@@ -35,6 +35,8 @@ app.get('/api/exec/:sql', (req, res) => executeSql(req.params.sql, [], x => res.
 app.get('/api/info', (req, res) => info(x => res.send(x)))
 
 app.get('/api/dump', (req, res) => dump(x => res.send(x)))
+
+app.get('/api/download-db', (req, res) => res.download(dbFile))
 
 function dump(callback) {  
   function loop(sqls, i, dump) {
@@ -70,15 +72,13 @@ function executeSql(sql, params, callback) {
   if (!sql) return callback({ error: "no sql was given to execute" })
   sql = sql.trim()
 
+  console.log("executing sql: " + sql + "\nwith params: ", params)
   if (sql.toLowerCase().startsWith("select ")) {
-    console.log("executing sql: " + sql + "\nwith params: ", params)
      db.all(sql, params, (err, rows) => {
        console.log("error", err)
        callback({ result: rows, error: err ? err.stack : undefined })
      })
   } else {
-    //sql = "PRAGMA foreign_keys = ON; \n" + sql + ";"
-    console.log("executing sql: " + sql + "\nwith params: ", params)
     db.serialize(() => db.run(sql, params, err => { 
       console.log("error", err)
       callback({ result: err ? "failed" : "ok", error: err ? err.stack : undefined })
@@ -88,7 +88,7 @@ function executeSql(sql, params, callback) {
 
 app.get("/", (req, res) => { 
   let content = marked(fs.readFileSync('./README.md', 'utf8'))
-  res.send( '<div class="markdown-body" style="margin: 0 auto 0 auto; max-width: 850px; padding: 0 12px 0 12px">'
+  res.send( '<div class="markdown-body" style="margin: 0 auto 0 auto; max-width: 850px; padding: 0 12px 50px 12px">'
      + '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/3.0.1/github-markdown.min.css">' 
      + content 
      + '</div>') 
