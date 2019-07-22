@@ -1,4 +1,5 @@
 dependencies:
+  better-sqlite3: 5.4.1
   cors: 2.8.5
   express: 4.17.1
   marked: 0.6.2
@@ -87,6 +88,14 @@ packages:
     dev: false
     resolution:
       integrity: sha1-pDAdOJtqQ/m2f/PKEaP2Y342Dp4=
+  /better-sqlite3/5.4.1:
+    dependencies:
+      integer: 2.1.0
+      tar: 4.4.10
+    dev: false
+    requiresBuild: true
+    resolution:
+      integrity: sha512-uFIjBdnSbzZT8NEqgH1IuARJaA4wtbJ2VmM/ibxlkY+9a0Z8dlyJZBBeKTg2l8L8fPvfpXearuZbjtr+5x8MiA==
   /body-parser/1.19.0:
     dependencies:
       bytes: 3.1.0
@@ -480,6 +489,11 @@ packages:
     dev: false
     resolution:
       integrity: sha512-RZY5huIKCMRWDUqZlEi72f/lmXKMvuszcMBduliQ3nnWbx9X/ZBQO7DijMEYS9EhHBb2qacRUMtC7svLwe0lcw==
+  /integer/2.1.0:
+    dev: false
+    requiresBuild: true
+    resolution:
+      integrity: sha512-vBtiSgrEiNocWvvZX1RVfeOKa2mCHLZQ2p9nkQkQZ/BvEiY+6CcUz0eyjvIiewjJoeNidzg2I+tpPJvpyspL1w==
   /ipaddr.js/1.9.0:
     dev: false
     engines:
@@ -1123,6 +1137,7 @@ registry: 'https://registry.npmjs.org/'
 shrinkwrapMinorVersion: 9
 shrinkwrapVersion: 3
 specifiers:
+  better-sqlite3: ^5.4.1
   cors: ^2.8.5
   express: ^4.16.4
   marked: ^0.6.2

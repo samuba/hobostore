@@ -2,6 +2,7 @@ var express = require('express')
 var bodyParser = require('body-parser')
 var cors = require('cors')
 var marked = require('marked')
+var Database = require('better-sqlite3')
 
 var app = express()
 app.use(cors())
@@ -24,7 +25,27 @@ var sqlite3 = require('sqlite3').verbose()
 var db = new sqlite3.Database(dbFile)
 db.exec("PRAGMA foreign_keys = ON")
 
-info((x) => console.log(x))
+sqlite3.Database.prototype.runAsync = function (sql, ...params) {
+    return new Promise((resolve, reject) => {
+        this.run(sql, params, function (err) {
+            if (err) return reject(err);
+            resolve(this);
+        });
+    });
+};
+
+sqlite3.Database.prototype.runBatchAsync = function (statements) {
+  var results = [];
+  var batch = ['BEGIN', ...statements, 'COMMIT'];
+  return batch.reduce((chain, statement) => chain.then(result => {
+      results.push(result);
+      return db.runAsync(...[].concat(statement));
+  }), Promise.resolve())
+  .catch(err => db.runAsync('ROLLBACK').then(() => Promise.reject(err + ' in statement #' + results.length)))
+  .then(() => results.slice(2));
+};
+
+app.post('/api/exec-multi', (req, res) => executeMultipleSql(req.body, x => res.send(x)))
 
 app.post('/api/exec', (req, res) => executeSql(req.body.sql, req.body.params, x => res.send(x)))
 
@@ -84,6 +105,30 @@ function executeSql(sql, params, callback) {
       callback({ result: err ? "failed" : "ok", error: err ? err.stack : undefined })
     }))
   } 
+}
+
+function executeMultipleSql(statements, callback) {
+  /*var results = [];
+  var batch = [{ sql: 'BEGIN' }, ...statements, { sql: 'COMMIT' }];
+  return batch.reduce((chain, statement) => chain.then(result => {
+      results.push(result);
+      return db.runAsync(...[].concat(statement.sql));
+  }), Promise.resolve())
+  .catch(err => db.runAsync('ROLLBACK').then(() => Promise.reject(err + ' in statement #' + results.length)))
+  .then(() => results.slice(2));*/
+
+
+
+
+  //db.runBatchAsync(req.body.statements).then(x => res.send(x))
+  let promises = []
+  executeSql("BEGIN", x => {
+    req.body.statements.forEach(x => { 
+      promises.push(new Promise(succ=> executeSql(x.sql, x.params, y => succ(y))))
+    })
+  })
+  executeSql("COMMIT")
+  Promise.all(promises).then(x => res.send(x))
 }
 
 app.get("/", (req, res) => { 

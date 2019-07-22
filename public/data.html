@@ -66,7 +66,7 @@
             </thead>
             <tbody>
               <tr v-for="row in table" :key="JSON.stringify(row)">
-                <td v-for="cell in row" :key="cell">{{cell}}</td>
+                <td v-for="cell in row" :key="cell" v-html="printCellValue(cell)" ></td>
               </tr>
             </tbody>
           </table>
@@ -134,6 +134,10 @@
           sibling = sibling.nextSibling
         }
         return siblings
+      },
+
+      printCellValue: function(cell) {
+        return cell == null ? "<i>null</i>" : cell
       },
 
       showSchema: function() {

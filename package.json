@@ -12,6 +12,7 @@
   "dependencies": {
     "express": "^4.16.4",
     "sqlite3": "^4.0.8",
+    "better-sqlite3": "^5.4.1",
     "marked": "^0.6.2",
     "cors": "^2.8.5"
   },
