@@ -9,13 +9,15 @@ const app = initExpress()
 const dbFile = './.data/sqlite.db'
 const db = initSqlite(dbFile)
 
-app.post('/api/exec-multi', (req, res) => res.send(executeMultipleSql(req.body.statements)))
+app.post('/api/execute', (req, res) => res.send(executeSql(req.body.sql)))
 
-app.post('/api/exec', (req, res) => res.send(executeSql(req.body.sql, req.body.params)))
+app.post('/api/exec-multi', (req, res) => res.send(runMultipleStatements(req.body.statements)))
 
-app.put('/api/exec', (req, res) => res.send(executeSql(req.body, [])))
+app.post('/api/exec', (req, res) => res.send(runStatement(req.body.sql, req.body.params)))
 
-app.get('/api/exec/:sql', (req, res) => res.send(executeSql(req.params.sql, [])))
+app.put('/api/exec', (req, res) => res.send(runStatement(req.body, [])))
+
+app.get('/api/exec/:sql', (req, res) => res.send(runStatement(req.params.sql, [])))
 
 app.get('/api/info', (req, res) => res.send(info()))
 
@@ -45,10 +47,10 @@ function info() {
   
   let params = {}
   tables.forEach(x => params[x.name] = x.sql)
-  return { tables: executeSql(sql, params).result }
+  return { tables: runStatement(sql, params).result }
 }
 
-function executeSql(sql, params) {
+function runStatement(sql, params) {
   params = params || []
   if (!sql) return { error: "no sql was given to execute" }
   sql = sql.trim()
@@ -64,7 +66,7 @@ function executeSql(sql, params) {
   }
 }
 
-function executeMultipleSql(statements) {
+function runMultipleStatements(statements) {
   const results = []
   console.log("executing sql statements:", statements)
   try {
@@ -77,6 +79,16 @@ function executeMultipleSql(statements) {
       }
     }))()
     return results
+  } catch(e) {
+    console.error(String(e))
+    return { error: String(e) }
+  }
+}
+
+function executeSql(sql) {
+  console.log("executing sql: \n" + sql)
+  try {
+    return { result: db.exec(sql) } 
   } catch(e) {
     console.error(String(e))
     return { error: String(e) }

@@ -1,140 +1,190 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <link rel="icon" href="https://cdn.glitch.com/e003989b-8256-4c47-9d72-378acc6c5df4%2Fhobostore.ico">
-    <title>Hobostore</title>
-    
-    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
-    <script src="common.js"></script>
-  </head>
-  <body>
-    <style>[v-cloak] > * { display:none } [v-cloak]::before { content: "loading…" }</style>
-    <noscript>
-      <strong>We're sorry but hobostore-explorer doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
-    </noscript>     
-    <div id="app" v-cloak> 
-      <nav class="navbar" role="navigation" aria-label="main navigation">
-        <div class="navbar-brand">
-          <a class="navbar-item" href="/">
-            <img src="https://cdn.glitch.com/e003989b-8256-4c47-9d72-378acc6c5df4%2Fhobostore-no-bg-small.png" height="28">
-            &nbsp;&nbsp;<h1 class="is-size-5">Hobostore</h1>
-          </a>
 
-          <a href="./index.html" class="navbar-item is-active">SQL</a>
-          <a href="./data.html" class="navbar-item">Data</a>
-          <span class="navbar-item"><input class="input" id="api-key-input" placeholder="api-key"></span>
-          <a :href="downloadLink" class="navbar-item" title="Download the whole DB">💾</a>
-        </div>
-      </nav>
-      
-      <section class="section">
-     
-        <div> 
-            
-            <textarea v-model="sql" @keydown="keyDown(sql, $event)" 
-                      class="textarea is-small" 
-                      placeholder="SELECT * FROM Foo" 
-                      rows="5">
-            </textarea>
-            <textarea v-model="params" @keydown="keyDown(sql, $event)" 
-                      class="textarea is-small" 
-                      placeholder="{ $title: 123 }" 
-                      rows="3">
-            </textarea>
-            <br>
-            <button @click="exec(sql, params)" ref="execButton" class="button is-link">
-              Execute
-            </button>
-            <br><br>
-            
-            <div v-if="result" class="card">
-              <header class="card-header">
-                <p class="card-header-title">Result  &nbsp;&nbsp;
-                  <span v-if="successful" class="tag is-success">succeeded in {{duration}}ms</span>
-                  <span v-if="failed" class="tag is-danger">failed in {{duration}}ms</span>
-                </p>
-                
-              </header>
-              <div class="card-content">
-                <pre v-html="result" class="content is-size-7 queryResult"></pre>
-              </div>
-            </div>
-          </div>
-      </section>
-      
-    </div>
-  </body>
-  <script>    
-    var app = new Vue({
-      el: '#app',
-      data: {
-        sql: "SELECT * FROM Authors",
-        params: null,
-        result: "",
-        successful: false,
-        failed: false,
-        duration: "",
-        downloadLink: "../api/download-db?api-key=" + getApiKey(),
-      },
-      methods: { 
-        
-        keyDown: function(sql, event) {
-          if (event.keyCode == 13 && event.ctrlKey) this.exec(sql, this.params)
-        },
-        
-        exec: function(sql, params) {
-            this.$refs.execButton.classList.add("is-loading")
-            const before = performance.now()
-            execSql(sql, JSON.parse(params))
-              .then(x => this.showResult(x, true, before))
-              .catch(x => this.showResult(x, false, before))
-        },
-        
-        showResult: function(result, successful, beforeTime) {
-          this.duration = Math.round(performance.now() - beforeTime)
-          this.$refs.execButton.classList.remove("is-loading")
-          this.successful = successful
-          this.failed = !successful
-          this.result = successful ? this.syntaxHighlight(result) : "<b>"+result+"</b>"
-        },
-        
-        syntaxHighlight: function(json) {
-          if (typeof json != 'string') {
-               json = JSON.stringify(json, undefined, 2)
-          }
-          json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-          return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
-              var cls = 'number';
-              if (/^"/.test(match)) {
-                  if (/:$/.test(match)) {
-                      cls = 'key';
-                  } else {
-                      cls = 'string';
-                  }
-              } else if (/true|false/.test(match)) {
-                  cls = 'boolean';
-              } else if (/null/.test(match)) {
-                  cls = 'null';
-              }
-              return '<span class="' + cls + '">' + match + '</span>';
-          })
-        }  
-      }
-    })
-  </script>
-  <style>  
-    .card-content { padding: 1px 0 0 0; }
-     pre { padding: 20px; }
-     .string { color: green; }
-     .number { color: darkorange; }
-     .boolean { color: blue; }
-     .null { color: magenta; }
-     .key { color: red; }
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <link rel="icon" href="https://cdn.glitch.com/e003989b-8256-4c47-9d72-378acc6c5df4%2Fhobostore.ico">
+  <title>Hobostore</title>
 
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
+  <script src="common.js"></script>
+</head>
+
+<body>
+  <style>
+    [v-cloak]>* {
+      display: none
+    }
+
+    [v-cloak]::before {
+      content: "loading…"
+    }
   </style>
+  <noscript>
+    <strong>We're sorry but hobostore-explorer doesn't work properly without JavaScript enabled. Please enable it to
+      continue.</strong>
+  </noscript>
+  <div id="app" v-cloak>
+    <nav class="navbar" role="navigation" aria-label="main navigation">
+      <div class="navbar-brand">
+        <a class="navbar-item" href="/">
+          <img src="https://cdn.glitch.com/e003989b-8256-4c47-9d72-378acc6c5df4%2Fhobostore-no-bg-small.png"
+            height="28">
+          &nbsp;&nbsp;<h1 class="is-size-5">Hobostore</h1>
+        </a>
+
+        <a href="./index.html" class="navbar-item is-active">SQL</a>
+        <a href="./data.html" class="navbar-item">Data</a>
+        <span class="navbar-item"><input class="input" id="api-key-input" placeholder="api-key"></span>
+        <a :href="downloadLink" class="navbar-item" title="Download the whole DB">💾</a>
+      </div>
+    </nav>
+
+    <section class="section">
+
+      <div>
+
+        <textarea v-model="sql" @keydown="keyDown(sql, $event)" class="textarea is-small"
+          placeholder="SELECT * FROM Foo" rows="5">
+        </textarea>
+
+        <textarea v-if="mode == 'run'" v-model="params" @keydown="keyDown(sql, $event)" class="textarea is-small"
+          placeholder="{ $title: 123 }" rows="3">
+        </textarea>
+        <br>
+        <button @click="exec(sql, params)" ref="execButton" class="button is-link">
+          ▷
+        </button>
+
+        <div class="select mode-select">
+          <select v-model="mode">
+            <option value="run">Run SQL Statement (supports returning selected results & prepared statements)</option>
+            <option value="exec">Execute SQL (supports multiple queries)</option>
+          </select>
+        </div>
+        <br><br>
+
+        <div v-if="result" class="card">
+          <header class="card-header">
+            <p class="card-header-title">Result &nbsp;&nbsp;
+              <span v-if="successful" class="tag is-success">succeeded in {{duration}}ms</span>
+              <span v-if="failed" class="tag is-danger">failed in {{duration}}ms</span>
+            </p>
+
+          </header>
+          <div class="card-content">
+            <pre v-html="result" class="content is-size-7 queryResult"></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</body>
+<script>
+  var app = new Vue({
+    el: '#app',
+    data: {
+      sql: getLastSql() || "SELECT * FROM Authors",
+      params: null,
+      mode: "run",
+      result: "",
+      successful: false,
+      failed: false,
+      duration: "",
+      downloadLink: "../api/download-db?api-key=" + getApiKey(),
+    },
+    methods: {
+
+      keyDown: function (sql, event) {
+        setLastSql(sql)
+        if (event.keyCode == 13 && event.ctrlKey) this.exec(this.sql, this.params)
+      },
+
+      exec: function (sql) {
+        this.$refs.execButton.classList.add("is-loading")
+        const before = performance.now()
+
+        if (this.mode == "run") {
+          runSql(sql, JSON.parse(this.params))
+            .then(x => this.showResult(x, true, before))
+            .catch(x => this.showResult(x, false, before))
+        } else {
+          execSql(sql)
+            .then(x => this.showResult(x, true, before))
+            .catch(x => this.showResult(x, false, before))
+        }
+      },
+
+      showResult: function (result, successful, beforeTime) {
+        this.duration = Math.round(performance.now() - beforeTime)
+        this.$refs.execButton.classList.remove("is-loading")
+        this.successful = successful
+        this.failed = !successful
+        this.result = successful ? this.syntaxHighlight(result) : "<b>" + result + "</b>"
+      },
+
+      syntaxHighlight: function (json) {
+        if (typeof json != 'string') {
+          json = JSON.stringify(json, undefined, 2)
+        }
+        json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+          var cls = 'anumber';
+          if (/^"/.test(match)) {
+            if (/:$/.test(match)) {
+              cls = 'key';
+            } else {
+              cls = 'string';
+            }
+          } else if (/true|false/.test(match)) {
+            cls = 'boolean';
+          } else if (/null/.test(match)) {
+            cls = 'null';
+          }
+          return '<span class="' + cls + '">' + match + '</span>';
+        })
+      }
+    }
+  })
+</script>
+<style>
+  .card-content {
+    padding: 1px 0 0 0;
+  }
+
+  .mode-select {
+    display: inline-block;
+    margin-left: 10px;
+  }
+
+  pre {
+    padding: 20px;
+  }
+
+  .string {
+    color: green;
+  }
+
+  .anumber {
+    color: darkorange;
+  }
+
+  .boolean {
+    color: blue;
+  }
+
+  .null {
+    color: magenta;
+  }
+
+  .key {
+    color: red;
+  }
+</style>
+
 </html>
